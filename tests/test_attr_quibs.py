@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 
 import numpy as np
+import pytest
 from pytest import fixture
 
 from pyquibbler import iquib, quiby, is_quiby, not_quiby
-from pyquibbler.quib.graphics.event_handling.utils import is_quib
+from pyquibbler.user_utils.is_quiby import is_quib
 from pyquibbler.utilities.basic_types import Mutable
 
 
@@ -618,3 +619,13 @@ def test_not_quiby_decorator_ordering():
     regular_static_result = obj.regular_static(x_quib)
     assert is_quib(regular_static_result)
     assert regular_static_result.get_value() == 10  # 5 * 2
+
+
+@pytest.mark.get_variable_names(True)
+def test_name_of_quiby_method(quiby_class):
+    x_quib = iquib(np.array([1, 2]))
+    y_quib = iquib(10)
+    my_obj = quiby_class(x_quib, y_quib, z_value)
+    p = iquib(2)
+    result = my_obj.dependent_quiby_method(p)
+    assert str(result) == "result = Obj(x=x_quib, y=y_quib).dependent_quiby_method(p)"

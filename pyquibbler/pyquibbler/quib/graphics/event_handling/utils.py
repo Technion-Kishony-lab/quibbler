@@ -99,6 +99,3 @@ def get_overshoot(p0: PointArray, p1: PointArray, p: PointArray) -> float:
         return (p[1] - p0[1]) / dp[1]
 
 
-def is_quib(obj):
-    from pyquibbler import Quib
-    return isinstance(obj, Quib)

@@ -7,7 +7,7 @@ from typing import Any, Optional, Tuple, Union
 from pyquibbler.path import PathComponent, Path
 from pyquibbler.utilities.general_utils import Shape
 
-from .utils import is_quib
+from pyquibbler.user_utils.is_quiby import is_quib
 
 from typing import TYPE_CHECKING
 

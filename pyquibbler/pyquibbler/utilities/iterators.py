@@ -1,4 +1,5 @@
 import copy
+from unittest.mock import Mock
 
 import numpy as np
 
@@ -8,6 +9,7 @@ from .general_utils import is_object_array, is_non_object_array
 from .numpy_original_functions import np_full
 
 from pyquibbler.path import Path, PathComponent, Paths
+from ..user_utils.is_quiby import is_quib
 
 
 def _larger_than(max_val: Optional[int], val: int = 0):
@@ -20,8 +22,9 @@ def _larger_than(max_val: Optional[int], val: int = 0):
 
 
 def is_user_object(obj):
-    return (obj.__class__.__module__ != "builtins"
-            and hasattr(obj, "__dict__"))
+    return obj.__class__.__module__ != "builtins" \
+        and not isinstance(obj, Mock) \
+        and hasattr(obj, "__dict__") and not is_quib(obj)
 
 
 def iter_paths_and_objects_matching_criteria_in_object_recursively(func: Callable, obj: Any,

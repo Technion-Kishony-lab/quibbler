@@ -22,7 +22,8 @@ from pyquibbler.utilities.numpy_original_functions import np_array, np_vectorize
 from .affected_args_and_paths import get_obj_and_path_affected_by_event
 from .enhance_pick_event import EnhancedPickEventWithFuncArgsKwargs
 from .solvers import solve_single_point_on_curve, solve_single_point_with_two_variables
-from .utils import skip_vectorize, is_quib
+from .utils import skip_vectorize
+from pyquibbler.user_utils.is_quiby import is_quib
 
 from typing import TYPE_CHECKING
 

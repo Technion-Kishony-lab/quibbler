@@ -1,17 +1,28 @@
 import operator
 import numpy as np
 
-from typing import Callable
+from typing import Callable, Any
 
 from pyquibbler.utilities.general_utils import Args, Kwargs
 
-from .math_expressions.call_method_expression import call_method_converter
+from .math_expressions.call_method_expression import CallMethodExpression
 from .math_expressions.getattr_expression import getattr_converter
 from .math_expressions.math_expression import MathExpression
 from .math_expressions.getitem_expression import getitem_converter
 from .math_expressions.func_call_expression import \
     is_str_format, str_format_call_converter, function_call_converter, vectorize_call_converter
 from .math_expressions.operators_expressions import OPERATOR_FUNCS_TO_MATH_CONVERTERS
+from pyquibbler.utilities.iterators import is_user_object
+
+
+def is_bound_method(obj: Any, func: Callable) -> bool:
+    return hasattr(obj, func.__name__)
+
+def is_method_call(func: Callable, args: Args, kwargs: Kwargs) -> bool:
+    if len(args) == 0:
+        return False
+    obj = args[0]
+    return is_user_object(obj) and is_bound_method(obj, func)
 
 
 def get_math_expression_of_func_with_args_and_kwargs(func: Callable,
@@ -39,6 +50,9 @@ def get_math_expression_of_func_with_args_and_kwargs(func: Callable,
 
     from ..specialized_functions.quiby_methods import CallObjectMethod
     if isinstance(func, CallObjectMethod):
-        return call_method_converter(func, args, kwargs)
+        return CallMethodExpression(func.method, args, kwargs)
+
+    if is_method_call(func, args, kwargs):
+        return CallMethodExpression(func.__name__, args, kwargs)
 
     return function_call_converter(func, args, kwargs)
