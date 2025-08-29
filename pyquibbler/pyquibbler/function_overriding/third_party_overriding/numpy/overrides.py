@@ -29,6 +29,13 @@ def identity(x):
     return x
 
 
+def _force_arg_to_result_independetly_of_other_arg(result, other):
+    return result
+
+
+FORCE_BINARY_ARGS_TO_RESULT = (_force_arg_to_result_independetly_of_other_arg, _force_arg_to_result_independetly_of_other_arg)
+
+
 nd = np.ndarray
 multy = DataArgumentDesignation(PositionalArgument(0), is_multi_arg=True)
 
@@ -454,13 +461,13 @@ RAW_ENTRIES = [
     ('conjugate',   unary_elementwise, np.conjugate),
 
     # -- Extrema Finding --
-    ('maximum',     binary_elementwise, (None, None)),  # TODO: write inverse
-    ('fmax',        binary_elementwise, (None, None)),  # TODO: write inverse
+    ('maximum',     binary_elementwise, FORCE_BINARY_ARGS_TO_RESULT),
+    ('fmax',        binary_elementwise, FORCE_BINARY_ARGS_TO_RESULT),
     ('amax',        _reduction),
     ('max',         _reduction),  # Added Alias
     ('nanmax',      _reduction),
-    ('minimum',     binary_elementwise, (None, None)),  # TODO: write inverse
-    ('fmin',        binary_elementwise, (None, None)),  # TODO: write inverse
+    ('minimum',     binary_elementwise, FORCE_BINARY_ARGS_TO_RESULT),
+    ('fmin',        binary_elementwise, FORCE_BINARY_ARGS_TO_RESULT),
     ('amin',        _reduction),
     ('min',         _reduction),  # Added Alias
     ('nanmin',      _reduction),
