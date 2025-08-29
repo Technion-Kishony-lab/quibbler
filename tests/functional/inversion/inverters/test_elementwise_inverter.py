@@ -25,6 +25,12 @@ from tests.functional.inversion.inverters.utils import inverse
     (np.add, (Source(2), np.array([5, 5, 5])), [False, True, False], 100, 0, 95),
     (np.arctan2, (3, Source(2.)), None, np.pi / 4, 1, 3),
     (np.arctan2, (Source(2.), 3), None, np.pi / 4, 0, 3),
+    (np.maximum, (Source(np.array([1, 5, 3])), np.array([3, 2, 4])), 1, 10, 0, np.array([1, 10, 3])),
+    (np.maximum, (Source(np.array([1, 5, 3])), np.array([3, 2, 4])), 0, 10, 0, np.array([10, 5, 3])),
+    (np.maximum, (np.array([1, 5, 3]), Source(np.array([3, 2, 4]))), 0, 10, 1, np.array([10, 2, 4])),
+    (np.maximum, (np.array([1, 5, 3]), Source(np.array([3, 2, 4]))), 2, 10, 1, np.array([3, 2, 10])),
+    (np.minimum, (Source(np.array([1, 5, 3])), np.array([3, 2, 4])), 1, 10, 0, np.array([1, 10, 3])),
+    (np.minimum, (np.array([1, 5, 3]), Source(np.array([3, 2, 4]))), 0, -7, 1, np.array([-7, 2, 4])),
 ], ids=[
     "add: simple",
     "add: multiple dimensions",
@@ -42,6 +48,12 @@ from tests.functional.inversion.inverters.utils import inverse
     "add: scalar broadcasting to vector with boolean indexing",
     "arctan2: first agr",
     "arctan2: second agr",
+    "maximum: first arg is quib, invert index 1",
+    "maximum: first arg is quib, invert index 0",
+    "maximum: second arg is quib, invert where y was max",
+    "maximum: second arg is quib, invert where y was max",
+    "minimum: first arg is quib, force index 1",
+    "minimum: second arg is quib, force index 0",
 ])
 def test_inverse_elementwise_two_arguments(func, func_args, indices, value, quib_arg_index, expected_value):
     sources_to_results, _ = inverse(func, indices=indices, value=value, args=func_args, empty_path=indices is None)
