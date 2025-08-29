@@ -53,7 +53,7 @@ def create_graphics_overrides():
             # 'axes',
             # 'axhline',  # implemented as plot_override
             'axhspan',
-            # 'axis',  # calls xlim, ylim, seems ok. 
+            'axis',  # calls xlim, ylim, seems ok. 
             'axline',
             # 'axvline',  # implemented as plot_override
             'axvspan',
