@@ -1,5 +1,5 @@
 import functools
-from typing import Callable, Optional
+from typing import Callable, Optional, Union, Any
 
 from pyquibbler.function_overriding.is_initiated import warn_if_quibbler_not_initialized, is_quibbler_initialized
 from pyquibbler.quib.quib import Quib
@@ -55,7 +55,7 @@ def quiby(func: Callable = None,
           create_quib: Optional[bool] = None,
           _quibify_even_if_quibbler_not_initialized: bool = False,
           **kwargs,
-          ) -> Callable[..., Quib]:
+          ) -> Callable[..., Union[Any, Quib]]:
     """
     Convert a regular function into a quiby function.
 
